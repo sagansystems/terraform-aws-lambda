@@ -12,6 +12,20 @@ data "external" "archive" {
   }
 }
 
+resource "null_resource" "runtimes" {
+  triggers = {
+    filename = lookup(data.external.archive.result, "filename")
+  }
+
+  provisioner "local-exec" {
+    command = <<EOH
+apt_command=`which apt` || `which apt-get` || echo 'apt'
+sudo $apt_command update || $apt_command update
+sudo $apt_command install -y python3 python3-pip || $apt_command install -y python3 python3-pip
+EOH
+  }
+}
+
 # Build the zip archive whenever the filename changes.
 resource "null_resource" "archive" {
   triggers = {
